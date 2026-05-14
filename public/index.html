@@ -40,7 +40,8 @@
         const playerElements = new Map();
         let myClientId = null;
 
-        const ws = new WebSocket(`ws://${window.location.host}`);
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
         ws.onopen = () => console.log('%cConnected to DOM-Arena Authority', 'color: emerald; font-weight: bold;');
 
