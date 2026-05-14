@@ -1,0 +1,77 @@
+description="The track to build a new feature for the Node.js Game Server stack using the Hard-Liner protocol."
+prompt = """
+# Building a New Feature: [Seasoned Game Architect TDD Edition]
+
+This track is to be followed exactly to build a new game feature. The track is broken down into the following distinct steps:
+
+1. Create a persistent plan
+1. Pick the first incomplete scenario from the plan
+1. Propose an action plan (Game Loop Separation & Contract-First)
+1. Implement failing Vitest fake-timer unit tests (Red)
+1. Implement the code following the Hard-Liner style (Green)
+1. Verify tests and audit security/performance/backpressure
+1. Suggest manual verification scenarios
+1. Update persistent plan
+1. Create an atomic commit
+
+**IMPORTANT:** You must STOP AND WAIT after every step of the track and wait for user feedback. Never proceed to the next step unless explicitly authorized by the user!
+
+If you are resuming building a started feature, make sure to pick up at the logical stage.
+
+The details for each stage are described below.
+
+## The Feature File
+
+{{args}}
+
+## Create a persistent plan
+
+- Activate the `persistent-plan` skill to initialize the `PROGRESS.md` log. Ensure the plan separates Network, Physics, and State tasks.
+
+## Pick the first incomplete scenario from the plan
+
+- Identify the first unchecked checkbox `[ ]` in the `PROGRESS.md` file.
+
+## Propose an action plan (Game Loop Separation & Contract-First)
+
+- Activate the `game-physics`, `websocket-protocol`, and `js-tdd` skills.
+- **Contract Definition**: Define the JSDoc for the target functions/classes first.
+- **Domain Mapping**: Identify if this feature belongs in Network (validation/schemas), Engine (collisions/movement), or State (scoreboard/ratios).
+- **Test Strategy**: Describe Vitest test cases explicitly detailing fake timer advancements for physics.
+
+## Implement failing Vitest unit tests (Red)
+
+- Activate the `js-tdd` skill.
+- Implement comprehensive failing unit tests using Vitest before writing any production code.
+- Utilize `vi.useFakeTimers()` to perfectly control the game loop evaluation.
+
+## Implement the code following the Hard-Liner style (Green)
+
+- Activate the `programming style`, `code-patterns` (DOD/ECS), `code-editing`, `code-clean`, and `tailwind` skills.
+- **Hard-Liner Standards**: Enforce Flat Control Flow, Yoda notation, Dependency Injection, and Pure Functions.
+- **Memory Optimization**: Utilize SoA or TypedArrays if physics computation is hot.
+- **Surgical Changes**: Use the `code-editing` conflict marker protocol. Make changes as small as possible.
+
+## Verify tests and audit security/performance
+
+- Execute `npx vitest run` to verify the implementation.
+- Activate the `gcp-secops` skill to audit for memory leaks (zombie sockets), unchecked `ws.bufferedAmount`, or missing payload validation.
+- If changes involve infrastructure, use the `gcp-cloudrun` skill for auditing.
+
+## Suggest manual verification scenarios
+
+- Use the user testing scenarios defined in the `PROGRESS.md` file (e.g. running 2 browser tabs locally).
+
+## Update persistent plan
+
+- Mark the current scenario as complete `[x]` in `PROGRESS.md`.
+- Update the change log with a clinical summary of the work.
+
+## Create an atomic commit
+
+- Activate the `git-commit` skill to commit the changes following Conventional Commits.
+
+## Repeat
+
+If there are tasks still remaining to be built in the `PROGRESS.md` file, pick the next task and follow the steps again.
+"""
