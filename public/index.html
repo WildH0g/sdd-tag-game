@@ -2,23 +2,113 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>DOM-Arena Phase 1 Diagnostic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOM-Arena | Phase 1 Diagnostic</title>
+    <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <h1>Phase 1 Diagnostic Console</h1>
-    <p>Open the browser console (F12) to see the WebSocket handshake.</p>
+<body class="bg-slate-950 text-slate-200 font-sans min-h-screen flex flex-col items-center justify-center">
+
+    <!-- Diagnostic HUD -->
+    <div id="hud" class="fixed top-4 left-4 bg-slate-900/80 border border-slate-700 p-4 rounded-md font-mono text-xs shadow-xl backdrop-blur-sm z-50">
+        <div class="flex flex-col gap-1">
+            <div><span class="text-slate-500">CLIENT_ID:</span> <span id="metric-id" class="text-blue-400">---</span></div>
+            <div><span class="text-slate-500">SERVER_TICK:</span> <span id="metric-tick" class="text-emerald-400">0</span></div>
+            <div><span class="text-slate-500">LATENCY:</span> <span id="metric-latency" class="text-yellow-400">0ms</span></div>
+            <div><span class="text-slate-500">ENTITIES:</span> <span id="metric-entities" class="text-purple-400">0</span></div>
+        </div>
+    </div>
+
+    <h1 class="mb-6 text-2xl font-bold tracking-tight text-slate-400 uppercase">Phase 1: Authority Verification</h1>
+
+    <!-- Game Arena (800x600) -->
+    <div id="arena" class="relative w-[800px] h-[600px] bg-slate-900 border-4 border-slate-800 rounded-lg shadow-2xl overflow-hidden cursor-crosshair">
+        <!-- Players will be injected here -->
+    </div>
+
+    <p class="mt-6 text-slate-500 text-sm max-w-lg text-center leading-relaxed">
+        Visual interpolation is disabled. Entities snap to authoritative server snapshots every 50ms. 
+        Use <code class="bg-slate-800 px-1 rounded text-blue-300">ws.send(JSON.stringify([1, x, y]))</code> in console to move.
+    </p>
+
     <script>
+        const arena = document.getElementById('arena');
+        const metricId = document.getElementById('metric-id');
+        const metricTick = document.getElementById('metric-tick');
+        const metricLatency = document.getElementById('metric-latency');
+        const metricEntities = document.getElementById('metric-entities');
+
+        const playerElements = new Map();
+        let myClientId = null;
+
         const ws = new WebSocket(`ws://${window.location.host}`);
-        ws.onopen = () => console.log('Connected to Server');
+
+        ws.onopen = () => console.log('%cConnected to DOM-Arena Authority', 'color: emerald; font-weight: bold;');
+
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
-            console.log('Message Received:', data);
+            
+            // Handle Handshake [0, Client_ID, Server_Time]
             if (data[0] === 0) {
-                console.log('%cHandshake Successful! Client ID: ' + data[1], 'color: green; font-weight: bold;');
+                myClientId = data[1];
+                metricId.innerText = myClientId.split('-')[0] + '...';
+                return;
             }
+
+            // Handle Heartbeat [Sequence_ID, Server_Time, [[Client_ID, X, Y], ...]]
+            const [seq, serverTime, players] = data;
+            
+            // Update HUD
+            metricTick.innerText = seq;
+            metricEntities.innerText = players.length;
+            // Simple RTT estimation
+            const latency = Math.floor(performance.now() - (window.lastTickTime || performance.now()));
+            metricLatency.innerText = `${latency}ms`;
+            window.lastTickTime = performance.now();
+
+            reconcilePlayers(players);
         };
-        ws.onclose = () => console.log('Disconnected from Server');
-        ws.onerror = (err) => console.error('WebSocket Error:', err);
+
+        /**
+         * Reconciles server snapshots with DOM elements.
+         * Enforces absolute server authority via GPU-accelerated transforms.
+         */
+        function reconcilePlayers(snapshot) {
+            const currentIds = new Set(snapshot.map(p => p[0]));
+
+            // 1. Remove disconnected players
+            for (const [id, el] of playerElements.entries()) {
+                if (!currentIds.has(id)) {
+                    el.remove();
+                    playerElements.delete(id);
+                }
+            }
+
+            // 2. Add or Update players
+            for (const [id, x, y] of snapshot) {
+                let el = playerElements.get(id);
+
+                if (!el) {
+                    el = document.createElement('div');
+                    el.className = 'absolute w-6 h-6 rounded shadow-lg transition-colors duration-200';
+                    el.style.backgroundColor = id === myClientId ? '#3b82f6' : '#94a3b8';
+                    el.innerHTML = `<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-slate-500 whitespace-nowrap">${id.split('-')[0]}</div>`;
+                    arena.appendChild(el);
+                    playerElements.set(id, el);
+                }
+
+                // Apply position with hardware-accelerated transform
+                // Shift by -12px to center the 24px (w-6) div on the coordinate
+                el.style.transform = `translate(${x - 12}px, ${y - 12}px)`;
+            }
+        }
+
+        ws.onclose = () => {
+            console.warn('Disconnected from Server');
+            document.body.classList.add('grayscale', 'opacity-50');
+        };
+
+        // Exposed for manual testing
+        window.ws = ws;
     </script>
 </body>
 </html>
