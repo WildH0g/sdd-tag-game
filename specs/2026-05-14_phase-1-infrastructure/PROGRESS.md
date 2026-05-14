@@ -32,7 +32,7 @@
 
 ### Phase 3: The Game Loop & Broadcasting
 
-- [ ] **3.1 Implement the 20Hz Game Loop Ticker**
+- [x] **3.1 Implement the 20Hz Game Loop Ticker**
   - Implement isolated `setInterval` running exactly every 50ms.
   - Track monotonic sequence numbers and `performance.now()`.
   - Construct the flat broadcast payload (`[Sequence_ID, Server_Time, [[Client_ID, X, Y], ...]]`).
@@ -60,3 +60,4 @@
 | 2026-05-14 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 1 SPEC.md.                                                                                                                                                           |
 | 2026-05-14 | 1.1  | ✅ Complete | Implemented NetworkManager with Ping/Pong pruning and backpressure protection. Added app.js entry point. **Note**: `pino-pretty` added as dev-dependency for human-readable local logs. Handshake verified. |
 | 2026-05-14 | 2.1  | ✅ Complete | Implemented StateManager with authoritative boundary clamping (0-800, 0-600). Hardened against `NaN` injection. Wired into app.js lifecycle. Verified via manual OOB coordinate injection.                  |
+| 2026-05-14 | 3.1  | ✅ Complete | Implemented 20Hz (50ms) GameLoop ticker. Orchestrated StateManager snapshots to NetworkManager broadcasts. Verified real-time synchronization between independent clients via browser diagnostic scripts.   |
