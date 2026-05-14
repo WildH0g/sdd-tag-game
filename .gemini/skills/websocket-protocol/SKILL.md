@@ -39,4 +39,3 @@ Ensure robust, low-latency, and safe real-time communication between the Node.js
 - Flag any architecture where the client blindly trusts the server snapshot without buffering/interpolating.
 - Reject any WebSocket server implementation that lacks a proactive Ping/Pong cleanup loop.
 - Enforce the separation of the "render loop" (`requestAnimationFrame`) from the "network loop" (`socket.on('message')`).
-

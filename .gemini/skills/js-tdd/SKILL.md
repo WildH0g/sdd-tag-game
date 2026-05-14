@@ -46,10 +46,10 @@ describe('Game Loop Physics', () => {
 
   it('should move player strictly at 50ms intervals', () => {
     startGameLoop(); // Starts a setInterval(..., 50)
-    
+
     // Fast-forward 100ms (2 ticks)
     vi.advanceTimersByTime(100);
-    
+
     expect(gameState.players[0].x).toBe(10); // Assuming 5px per tick
   });
 });
@@ -58,20 +58,24 @@ describe('Game Loop Physics', () => {
 ## Quality Standards
 
 ### Test Structure (AAA Pattern)
+
 - **Arrange**: Set up the necessary state and dependencies.
 - **Act**: Execute the unit under test.
 - **Assert**: Verify the outcome with precise assertions.
 
 ### Coverage & Physics
+
 - [ ] **Happy Path**: Collisions resolve correctly.
 - [ ] **Boundary Conditions**: Entities do not escape the fixed 800x600 arena.
 - [ ] **Time Independence**: If `vi.advanceTimersByTime(100)` is called, the output is exactly double that of `vi.advanceTimersByTime(50)`.
 
 ## Mocks & Dependency Injection
+
 - **Rule**: NEVER mock the entire `ws` WebSocket server.
 - **Injection**: Pass mocked broadcasting functions (`vi.fn()`) into the network adapters to verify that the server "would have" broadcasted the state.
 
 ## Workspace Context
+
 - **Project Type**: Node.js Game Server
 - **Testing Engine**: Vitest
 - **Execution**: Run with `npx vitest run` (ensure watch mode is off in automated environments).

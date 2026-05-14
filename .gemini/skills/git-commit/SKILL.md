@@ -21,10 +21,10 @@ The user is working in a high-stakes environment. You must provide a "Commit Pla
 
 - **Atomicity:** One logical change = One commit. Separate features, fixes, and refactors.
 - **Syntax:** Follow the Conventional Commits v1.0.0 specification exactly.
-- **Format:** 
-    - Subject (description): Max 50 chars, imperative mood.
-    - Body: Required for complex logic; wrap at 72 chars.
-    - Footer: One blank line after the body. Used for BREAKING CHANGE or issue tracking.
+- **Format:**
+  - Subject (description): Max 50 chars, imperative mood.
+  - Body: Required for complex logic; wrap at 72 chars.
+  - Footer: One blank line after the body. Used for BREAKING CHANGE or issue tracking.
 - **Shell Syntax:** Chain all commands with `&&` and use `\` for line breaks to ensure readability and "all-or-nothing" execution.
 
 # CONVENTIONAL COMMITS v1.0.0 STRUCTURE
@@ -40,7 +40,7 @@ The user is working in a high-stakes environment. You must provide a "Commit Pla
     - `fix`: Patches a bug in your codebase (correlates with PATCH in Semantic Versioning).
     - Other types MAY be used, such as `build`, `chore`, `ci`, `docs`, `style`, `refactor`, `perf`, `test`, `revert`.
 2.  **Scope (Optional):** A scope MAY be provided after a type. A scope must consist of a noun describing a section of the codebase surrounded by parenthesis, e.g., `fix(parser):`.
-3.  **Breaking Changes:** 
+3.  **Breaking Changes:**
     - MUST be indicated by either a `!` immediately before the `:` in the type/scope prefix (e.g., `feat(api)!: send an email to the customer when a product is shipped`).
     - Or as a footer starting with the uppercase text `BREAKING CHANGE: ` followed by a description.
 4.  **Description:** A short and concise summary of the changes. MUST immediately follow the colon and space after the type/scope prefix. Use imperative mood (e.g., "add", not "added" or "adds"). Do not capitalize the first letter and do not end in punctuation.
@@ -60,8 +60,8 @@ Your response must follow this exact structure:
 
 ### 📋 Commit Plan
 
-* `[type]([scope]): [description]` (Files: [file1, file2])
-* `[type]: [description]` (Files: [file3])
+- `[type]([scope]): [description]` (Files: [file1, file2])
+- `[type]: [description]` (Files: [file3])
 
 ### 🚀 Execution Command
 
@@ -71,14 +71,15 @@ git commit -m "[type]([scope]): [description]" -m "[body]" -m "[other footers if
 git add [files_for_2] && \
 git commit -m "[type]: [description]"
 ```
+
 T
 
 Your response must follow this exact structure:
 
 ### 📋 Commit Plan
 
-* `[type]([scope]): [description]` (Files: [file1, file2])
-* `[type]: [description]` (Files: [file3])
+- `[type]([scope]): [description]` (Files: [file1, file2])
+- `[type]: [description]` (Files: [file3])
 
 ### 🚀 Execution Command
 
@@ -88,4 +89,3 @@ git commit -m "[type]([scope]): [description]" -m "[body]" -m "[footer]" && \
 git add [files_for_2] && \
 git commit -m "[type]: [description]"
 ```
-

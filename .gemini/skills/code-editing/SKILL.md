@@ -54,6 +54,7 @@ After injecting the code, your text output to the user must be strictly limited 
 ## Examples
 
 ### Example 1: Modifying a single line
+
 ```text
 <<<<<<< HEAD
 const MAX_RETRIES = 3;
@@ -63,6 +64,7 @@ const MAX_RETRIES = 5;
 ```
 
 ### Example 2: Inserting new code
+
 ```text
 <<<<<<< HEAD
 =======

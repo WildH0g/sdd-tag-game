@@ -8,23 +8,29 @@ description: Conduct preliminary research on a topic and generate research outli
 # Research Skill - Preliminary Research
 
 ## Trigger
+
 `/research <topic>`
 
 ## Workflow
 
 ### Step 1: Generate Initial Framework from Model Knowledge
+
 Based on topic, use model's existing knowledge to generate:
+
 - Main research objects/items list in this domain
 - Suggested research field framework
 
 Output {step1_output}, use AskUserQuestion to confirm:
+
 - Need to add/remove items?
 - Does field framework meet requirements?
 
 ### Step 2: Web Search Supplement
+
 Use AskUserQuestion to ask for time range (e.g., last 6 months, since 2024, unlimited).
 
 **Parameter Retrieval**:
+
 - `{topic}`: User input research topic
 - `{YYYY-MM-DD}`: Current date
 - `{step1_output}`: Complete output from Step 1
@@ -33,6 +39,7 @@ Use AskUserQuestion to ask for time range (e.g., last 6 months, since 2024, unli
 **Hard Constraint**: The following prompt must be strictly reproduced, only replacing variables in {xxx}, do not modify structure or wording.
 
 Launch 1 web-search-agent (background), **Prompt Template**:
+
 ```python
 prompt = f"""## Task
 Research topic: {topic}
@@ -67,12 +74,15 @@ Return structured results directly (do not write files):
 ```
 
 ### Step 3: Ask User for Existing Fields
+
 Use AskUserQuestion to ask if user has existing field definition file, if so read and merge.
 
 ### Step 4: Generate Outline (Separate Files)
+
 Merge {step1_output}, {step2_output} and user's existing fields, generate two files:
 
 **outline.yaml** (items + config):
+
 - topic: Research topic
 - items: Research objects list
 - execution:
@@ -81,17 +91,20 @@ Merge {step1_output}, {step2_output} and user's existing fields, generate two fi
   - output_dir: Results output directory (default: ./results)
 
 **fields.yaml** (field definitions):
+
 - Field categories and definitions
 - Each field's name, description, detail_level
 - detail_level hierarchy: brief -> moderate -> detailed
 - uncertain: Uncertain fields list (reserved field, auto-filled in deep phase)
 
 ### Step 5: Output and Confirm
+
 - Create directory: `./{topic_slug}/`
 - Save: `outline.yaml` and `fields.yaml`
 - Show to user for confirmation
 
 ## Output Path
+
 ```
 {current_working_directory}/{topic_slug}/
   ├── outline.yaml    # items list + execution config
@@ -99,6 +112,7 @@ Merge {step1_output}, {step2_output} and user's existing fields, generate two fi
 ```
 
 ## Follow-up Commands
+
 - `/research-add-items` - Supplement items
 - `/research-add-fields` - Supplement fields
 - `/research-deep` - Start deep research

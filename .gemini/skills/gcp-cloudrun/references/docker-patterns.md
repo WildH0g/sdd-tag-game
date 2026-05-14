@@ -1,6 +1,7 @@
 # Optimized Dockerfile Patterns for Cloud Run
 
 ## 🟢 Node.js (Alpine Multi-Stage)
+
 ```dockerfile
 # Stage 1: Build
 FROM node:20-alpine AS builder
@@ -27,6 +28,7 @@ CMD ["node", "dist/index.js"]
 ```
 
 ## 🔵 Python (Slim Multi-Stage)
+
 ```dockerfile
 # Stage 1: Builder
 FROM python:3.12-slim AS builder

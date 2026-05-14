@@ -2,31 +2,19 @@
   "mcpServers": {
     "gcloud": {
       "command": "npx",
-      "args": [
-        "-y",
-        "@google-cloud/gcloud-mcp"
-      ]
+      "args": ["-y", "@google-cloud/gcloud-mcp"]
     },
     "chrome-devtools": {
       "command": "npx",
-      "args": [
-        "-y",
-        "chrome-devtools-mcp@latest"
-      ]
+      "args": ["-y", "chrome-devtools-mcp@latest"]
     },
     "ui-layouts": {
       "command": "npx",
-      "args": [
-        "-y",
-        "ui-layouts-mcp"
-      ]
+      "args": ["-y", "ui-layouts-mcp"]
     },
     "flyonui": {
       "command": "npx",
-      "args": [
-        "-y",
-        "flyonui-mcp"
-      ]
+      "args": ["-y", "flyonui-mcp"]
     }
   },
   "agents": {

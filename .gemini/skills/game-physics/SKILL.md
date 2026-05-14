@@ -23,4 +23,3 @@ Ensure all game physics are deterministic, performant, and completely decoupled 
 - Flag any use of `Date.now()` directly inside a physics update loop; the timestep must be injected as `dt`.
 - Flag O(n^2) loops inside collision detection routines.
 - Ensure collisions return explicit outcome objects (e.g., `{ hit: true, overlapX, overlapY }`) rather than triggering side-effects directly.
-

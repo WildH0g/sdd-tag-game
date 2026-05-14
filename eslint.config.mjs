@@ -32,14 +32,8 @@ export default [
     },
 
     rules: {
-      // User's rules
       'no-extra-boolean-cast': 'off',
       'no-unused-vars': 'off',
-      // Hard-Liner rules
-      'no-var': 'error',
-      'prefer-const': 'error',
-      eqeqeq: 'error',
-      yoda: ['error', 'always'],
     },
   },
 ];

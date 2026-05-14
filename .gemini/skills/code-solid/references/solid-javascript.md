@@ -15,13 +15,13 @@ _"A function or class should do exactly one thing."_
 
 ```javascript
 // ✅ GOOD: Composed pure functions
-const validate = data => ({ ...data, isValid: !!data.email });
-const save = data => {
+const validate = (data) => ({ ...data, isValid: !!data.email });
+const save = (data) => {
   /* db logic */ return data;
 };
-const respond = data => ({ status: 200, body: data });
+const respond = (data) => ({ status: 200, body: data });
 
-const registerUser = req => respond(save(validate(req.body)));
+const registerUser = (req) => respond(save(validate(req.body)));
 ```
 
 ---
@@ -36,9 +36,9 @@ Use the **Strategy Pattern** with an **Object Map** or `Map` to replace `if/else
 
 ```javascript
 const formatters = {
-  json: data => JSON.stringify(data),
-  csv: data => data.join(','),
-  xml: data => `<data>${data}</data>`,
+  json: (data) => JSON.stringify(data),
+  csv: (data) => data.join(','),
+  xml: (data) => `<data>${data}</data>`,
 };
 
 // Logic is CLOSED to modification when adding new formats
@@ -79,7 +79,7 @@ Pass only the specific data required. Use **Composition** over large "Config" ob
 
 ```javascript
 // ❌ BAD: Fat dependency
-const updateSettings = user => {
+const updateSettings = (user) => {
   db.save(user.id, user.settings);
 };
 
@@ -101,7 +101,7 @@ Use **Dependency Injection** (Constructor Injection) or **Function Arguments**.
 
 ```javascript
 // ✅ GOOD: Dependency is passed in, not hardcoded
-const createAuthService = dbClient => ({
-  login: creds => dbClient.findUser(creds),
+const createAuthService = (dbClient) => ({
+  login: (creds) => dbClient.findUser(creds),
 });
 ```

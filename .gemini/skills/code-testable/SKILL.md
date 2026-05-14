@@ -29,9 +29,11 @@ Act as a clinical, high-integrity Testability Architect. Your goal is to ensure 
 **Verdict**: [PASS | FAIL | REJECT] (REJECT for hardcoded socket emission or non-deterministic time inside physics).
 
 #### 🚩 Testability Violations
+
 - **[Violation Type (e.g., Hardcoded Socket)]**: [Specific file/line]. (Technical rationale).
 - **Remediation**: [Surgical refactoring plan to implement DI].
 
 #### 🧪 Testing Strategy
+
 - **Unit Testing**: [How to test this module after refactoring].
 - **Mocking Plan**: [Specific dependencies that require mocks (e.g., fake timers)].

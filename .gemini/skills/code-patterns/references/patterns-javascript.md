@@ -50,13 +50,16 @@ Use Node's `EventEmitter` to decouple the network layer from the game loop. The 
 ## 🚀 4. Real-Time Game Server Patterns
 
 ### **The Game Loop Pattern**
+
 Decouple the game simulation step (`update()`) from the broadcast step. Use a fixed `setInterval` (e.g., 50ms) to ensure deterministic state resolution regardless of input volume.
 
 ### **Data-Oriented Design (DOD) & ECS**
+
 Traditional OOP (Array of Structures / AoS) causes cache misses and heavy Garbage Collection (GC) pauses as thousands of objects are allocated and destroyed. JavaScript game servers MUST use DOD:
+
 - **Struct of Arrays (SoA)**: Instead of `[{x, y}, {x, y}]`, store components as flat arrays: `{ x: [0, 10], y: [0, 20] }`.
 - **TypedArrays for Zero GC**: Use `Float32Array` or `Int16Array` for component storage (e.g., positions, velocities). TypedArrays are allocated once, avoiding the JS garbage collector entirely, preventing micro-stutters during the 50ms tick.
-- **Entity-Component-System (ECS)**: 
+- **Entity-Component-System (ECS)**:
   - **Entities** are just integer IDs (array indices).
   - **Components** are pure data (TypedArrays).
   - **Systems** are pure functions that iterate over flat arrays.
@@ -66,11 +69,11 @@ Traditional OOP (Array of Structures / AoS) causes cache misses and heavy Garbag
 const MAX_PLAYERS = 1000;
 const Position = {
   x: new Float32Array(MAX_PLAYERS),
-  y: new Float32Array(MAX_PLAYERS)
+  y: new Float32Array(MAX_PLAYERS),
 };
 const Velocity = {
   x: new Float32Array(MAX_PLAYERS),
-  y: new Float32Array(MAX_PLAYERS)
+  y: new Float32Array(MAX_PLAYERS),
 };
 
 // System: Pure function, contiguous memory access, zero object allocation

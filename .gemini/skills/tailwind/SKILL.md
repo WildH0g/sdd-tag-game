@@ -19,4 +19,3 @@ Ensure all frontend styling strictly adheres to Tailwind CSS v4 best practices, 
 
 - Flag any inline `style="..."` attributes in HTML/JS.
 - Review and suggest Tailwind utility classes for flexbox/grid layouts.
-
