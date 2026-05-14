@@ -20,7 +20,7 @@
 
 ### Phase 2: State Management & Authority
 
-- [ ] **2.1 Implement StateManager & Boundary Clamping**
+- [x] **2.1 Implement StateManager & Boundary Clamping**
   - Implement pure synchronous `StateManager` class.
   - Implement 800x600 boundary clamping logic for incoming X/Y updates.
   - Handle player addition and removal from state.
@@ -59,3 +59,4 @@
 | :--------- | :--- | :---------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 2026-05-14 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 1 SPEC.md.                                                                                                                                                           |
 | 2026-05-14 | 1.1  | ✅ Complete | Implemented NetworkManager with Ping/Pong pruning and backpressure protection. Added app.js entry point. **Note**: `pino-pretty` added as dev-dependency for human-readable local logs. Handshake verified. |
+| 2026-05-14 | 2.1  | ✅ Complete | Implemented StateManager with authoritative boundary clamping (0-800, 0-600). Hardened against `NaN` injection. Wired into app.js lifecycle. Verified via manual OOB coordinate injection.                  |
