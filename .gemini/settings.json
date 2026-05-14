@@ -10,11 +10,11 @@
     },
     "ui-layouts": {
       "command": "npx",
-      "args": ["-y", "ui-layouts-mcp"]
+      "args": ["-y", "@ui-layouts/mcp"]
     },
     "flyonui": {
       "command": "npx",
-      "args": ["-y", "flyonui-mcp"]
+      "args": ["-y", "flyonui-mcp", "API_KEY=\"\""]
     }
   },
   "agents": {
