@@ -2,6 +2,7 @@ import express from 'express';
 import { createServer } from 'node:http';
 import { NetworkManager } from './src/server/network/NetworkManager.js';
 import { StateManager } from './src/server/state/StateManager.js';
+import { GameLoop } from './src/server/engine/GameLoop.js';
 import pino from 'pino';
 
 const logger = pino({
@@ -43,14 +44,32 @@ const networkManager = new NetworkManager({
     logger.info({ clientId: id }, 'Client disconnected');
   },
   onClientMessage: (id, payload) => {
+    logger.debug({ clientId: id, payload }, 'Message received');
     stateManager.updatePlayerPosition(id, payload);
-    const snapshot = stateManager.getSnapshot();
-    logger.debug({ clientId: id, snapshot }, 'State Updated');
   },
 });
 
+const gameLoop = new GameLoop({
+  stateManager,
+  networkManager,
+  tickRate: 50, // 20Hz
+});
+
+// Throttle heartbeat logging to once per 100 ticks (5 seconds)
+let tickCount = 0;
+const originalTick = gameLoop._tick.bind(gameLoop);
+gameLoop._tick = () => {
+  tickCount++;
+  if (100 <= tickCount) {
+    logger.debug('Heartbeat: 100 ticks processed');
+    tickCount = 0;
+  }
+  originalTick();
+};
+
 // For Cloud Run, we attach WS to the HTTP server to share the same port.
 networkManager.start(server);
+gameLoop.start();
 
 server.listen(PORT, () => {
   logger.info(`Server listening on port ${PORT}`);
@@ -58,6 +77,7 @@ server.listen(PORT, () => {
 
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received. Shutting down...');
+  gameLoop.stop();
   networkManager.shutdown();
   server.close();
 });
