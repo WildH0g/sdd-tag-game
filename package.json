@@ -1,0 +1,35 @@
+{
+  "name": "sdd-game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js",
+    "build:css": "tailwindcss -i ./src/client/input.css -o ./public/style.css",
+    "watch:css": "tailwindcss -i ./src/client/input.css -o ./public/style.css --watch",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "modules",
+  "dependencies": {
+    "@google-cloud/secret-manager": "^6.1.2",
+    "express": "^5.2.1",
+    "pino": "^10.3.1",
+    "ws": "^8.20.1",
+    "zod": "^4.4.3"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.1.0",
+    "utf-8-validate": "^6.0.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "nodemon": "^3.1.14",
+    "tailwindcss": "^4.3.0",
+    "vitest": "^4.1.6"
+  }
+}

@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+/* Custom game arena styles can go here */
+@theme {
+  --color-game-bg: #1a1a1a;
+  --color-player-hunter: #ef4444;
+  --color-player-prey: #3b82f6;
+}
