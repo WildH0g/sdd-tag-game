@@ -19,7 +19,7 @@
 
 ### Phase 2: State (Role & Score Management)
 
-- [ ] **2.1 Update StateManager for Roles, Scores, and Grace Periods**
+- [x] **2.1 Update StateManager for Roles, Scores, and Grace Periods**
   - Refactor `StateManager.js` to track `role`, `score`, and `lastTaggedTime`.
   - Implement `hunterCount` invariant and automatic "It" designation.
   - Implement `resolveCollisions(pairs, currentTime)` logic (swap roles, increment score, teleport).
@@ -27,7 +27,7 @@
   - **Agent Tools**: `replace`, `write_file`, `run_shell_command`
   - **Agent Skills:** `js-tdd`, `code-clean`, `code-modularity`
   - **Agent Verification**: `npx vitest run` with fake timers to verify role swaps and grace period immunity.
-  - **User verification**: None (Internal state transitions).
+  - **User verification**: Drive RED square into BLUE square. Observe instant color swap, teleportation, and score increment (+15).
 
 ### Phase 3: Network (Event Protocol & Expanded Broadcast)
 
@@ -52,7 +52,8 @@
 
 ## 📝 Change Log
 
-| Date       | Step | Status      | Notes                                                                                                                                                                       |
-| :--------- | :--- | :---------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-05-15 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 3 SPEC.md.                                                                                                                           |
-| 2026-05-15 | 1.1  | ✅ Complete | Implemented pure `CollisionEngine` with authoritative AABB logic and 2px negative padding ("Forgiving Collision"). Verified via precision unit tests. O(N²) implementation. |
+| Date       | Step | Status      | Notes                                                                                                                                                                                                                             |
+| :--------- | :--- | :---------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-15 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 3 SPEC.md.                                                                                                                                                                                 |
+| 2026-05-15 | 1.1  | ✅ Complete | Implemented pure `CollisionEngine` with authoritative AABB logic and 2px negative padding ("Forgiving Collision"). Verified via precision unit tests. O(N²) implementation.                                                       |
+| 2026-05-15 | 2.1  | ✅ Complete | Expanded StateManager with Roles, Scores (+15 per tag), and 2000ms grace period. Wired CollisionEngine into authoritative heartbeat loop in app.js. Verified visual tagging and score updates via diagnostic HUD scoreboard list. |
