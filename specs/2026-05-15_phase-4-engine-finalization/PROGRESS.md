@@ -1,6 +1,6 @@
 # Project Progress: Phase 4 - Engine Finalization & Trajectory Physics
 
-**Status:** Complete
+**Status:** In Progress
 **Start Date:** 2026-05-15
 **Context:** Implement advanced physics (Swept AABB), authoritative reconciliation hardening, spawn safety, and performance optimizations for the production-grade game engine.
 
@@ -45,9 +45,9 @@
   - **Agent Verification**: `npx vitest run` simulating a 51px desync and asserting a hard snap.
   - **User verification**: Toggle network "Offline" for 2 seconds then "Online". Observe the corrective snap and visual pulse.
 
-- [ ] **3.2 Implement Replay Cap & Clock Drift Correction**
+- [x] **3.2 Implement Input Replay Cap & Clock Drift Correction**
   - Implement the 20-input replay buffer cap to handle major lag spikes.
-  - Add dynamic clock drift correction to prevent temporal sliding.
+  - Add dynamic clock drift correction (EWMA) to prevent temporal sliding.
   - **Agent Tools**: `replace`, `run_shell_command`
   - **Agent Skills:** `js-tdd`, `code-modularity`
   - **Agent Verification**: `npx vitest run` with simulated 1s lag and buffer overflow.
@@ -62,3 +62,4 @@
 | 2026-05-15 | 2.1  | ✅ Complete | Implemented 50ms Spawn Invulnerability in `StateManager.js`. Decoupled spawn safety from tag grace period using separate timestamps. Refactored resolveCollisions for correct role/score assignment. |
 | 2026-05-15 | 2.2  | ✅ Complete | Implemented zero-GC snapshot buffering in `StateManager.js` using a pre-allocated array pool to reduce heap pressure. Verified data integrity via Vitest suites.                                     |
 | 2026-05-15 | 3.1  | ✅ Complete | Implemented authoritative reconciliation logic. Added 50px divergence threshold with Hard-Snap functionality and accompanying diagnostic Glitch Effect.                                              |
+| 2026-05-15 | 3.2  | ✅ Complete | Enforced 20-input buffer cap on client `InputManager`. Added EWMA-based clock drift correction to `ClientEngine` for temporal stability. Verified via Vitest suites.                                 |
