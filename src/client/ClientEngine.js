@@ -25,6 +25,7 @@ export class ClientEngine {
     this.playerElements = new Map();
     this.myClientId = null;
     this.serverPosition = { x: 400, y: 300 };
+    this.predictedPosition = { x: 400, y: 300 };
     this.serverTimeOffset = 0;
     this.isRunning = false;
   }
@@ -119,6 +120,7 @@ export class ClientEngine {
       predictedY = result.y;
     });
 
+    this.predictedPosition = { x: predictedX, y: predictedY };
     this._updateEntityElement(this.myClientId, predictedX, predictedY, true);
   }
 
@@ -198,8 +200,26 @@ export class ClientEngine {
     this.serverPosition = { x: sX, y: sY };
 
     // 3. Security: Check for excessive desync (Divergence Threshold)
-    // We compare current server position to last calculated predicted position
-    // but simplified for Phase 2: just update the base server position.
-    // Prediction logic in _render handles the rest.
+    const dist = Math.hypot(
+      this.predictedPosition.x - sX,
+      this.predictedPosition.y - sY
+    );
+    if (dist > this.snapThreshold) {
+      this.predictedPosition = { x: sX, y: sY };
+      this._triggerGlitchEffect();
+    }
+  }
+
+  /**
+   * Visual feedback for hard-snap reconciliation.
+   * @private
+   */
+  _triggerGlitchEffect() {
+    const flash = globalThis.document.getElementById('flash-overlay');
+    if (!flash) return;
+    flash.style.opacity = '1';
+    setTimeout(() => {
+      flash.style.opacity = '0';
+    }, 50);
   }
 }
