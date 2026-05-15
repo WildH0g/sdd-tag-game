@@ -92,6 +92,10 @@ export class InputManager {
     const inputRecord = [1, this.sequenceId, vx, vy];
 
     this.pendingQueue.push(inputRecord);
+    // Buffer cap: discard oldest inputs to prevent unbound memory growth
+    while (20 < this.pendingQueue.length) {
+      this.pendingQueue.shift();
+    }
 
     if ('function' === typeof this.config.onInputPolled) {
       this.config.onInputPolled(inputRecord);

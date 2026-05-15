@@ -78,6 +78,22 @@ describe('InputManager (2.1)', () => {
     expect(remaining[0][1]).toBe(3); // Only Seq 3 remains
   });
 
+  it('should enforce a 20-input queue cap', () => {
+    inputManager.start();
+
+    // Generate 30 inputs
+    for (let i = 1; 30 >= i; i++) {
+      inputManager.pendingQueue.push([1, i, 0, 0]);
+    }
+
+    // Acknowledge the first 10 inputs to trigger the cap (30 - 10 = 20 left)
+    inputManager.acknowledge(10);
+
+    const queue = inputManager.getPendingQueue();
+    expect(queue.length).toBe(20);
+    expect(queue[0][1]).toBe(11); // Oldest 10 dropped
+  });
+
   it('should attach listeners to the event target on start', () => {
     inputManager.start();
     expect(mockEventTarget.addEventListener).toHaveBeenCalledWith(
