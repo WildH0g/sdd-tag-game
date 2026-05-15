@@ -2,7 +2,7 @@ import { applyInput } from '../../shared/physics.js';
 
 /**
  * Authoritative Single Source of Truth (SSOT) for the game state.
- * Refactored for Phase 3 to support Roles, Scores, and Collision Resolution.
+ * Refactored for Phase 4 with Swept AABB, Grace Periods, and Spawn Protection.
  */
 export class StateManager {
   /**
@@ -10,7 +10,8 @@ export class StateManager {
    * @param {number} config.width - Arena width.
    * @param {number} config.height - Arena height.
    * @param {number} [config.playerSpeed=200] - Movement speed in px/s.
-   * @param {number} [config.tagGracePeriod=2000] - Cooldown in ms after being tagged.
+   * @param {number} [config.tagGracePeriod=2000] - Cooldown for being caught again.
+   * @param {number} [config.spawnProtection=50] - Cooldown for new hunters to tag others.
    */
   constructor(config) {
     this.config = {
@@ -18,15 +19,15 @@ export class StateManager {
       height: config.height,
       playerSpeed: config.playerSpeed || 200,
       tagGracePeriod: config.tagGracePeriod || 2000,
+      spawnProtection: config.spawnProtection || 50,
       tickRate: 0.05, // Fixed 50ms tick
     };
     this.players = new Map();
   }
 
   /**
-   * Adds a new player with zeroed sequence tracking.
+   * Adds a new player.
    * Ensures at least one hunter exists.
-   * @param {string} id
    */
   addPlayer(id) {
     let hunterCount = 0;
@@ -42,14 +43,13 @@ export class StateManager {
       lastInputSeq: 0,
       role: role,
       score: 0,
-      lastTaggedTime: -1,
+      lastCaughtTime: -1, // Time they were tagged by a hunter
+      spawnTime: -1, // Time they appeared at center as a new hunter
     });
   }
 
   /**
-   * Removes a player from the state.
-   * Ensures the hunter role is reassigned if the current hunter leaves.
-   * @param {string} id
+   * Removes a player and ensures a hunter replacement if needed.
    */
   removePlayer(id) {
     const player = this.players.get(id);
@@ -64,7 +64,6 @@ export class StateManager {
   }
 
   /**
-   * Internal invariant maintenance to ensure the game always has a hunter.
    * @private
    */
   _ensureHunterExists() {
@@ -77,59 +76,49 @@ export class StateManager {
 
     if (false === hunterExists) {
       const firstId = this.players.keys().next().value;
-      this.players.get(firstId).role = 1;
+      const p = this.players.get(firstId);
+      p.role = 1;
+      p.spawnTime = -1; // Initial hunter has no spawn protection
     }
   }
 
   /**
-   * Processes a Vector input [Type, Input_Seq, Vec_X, Vec_Y].
-   * Integrates shared/physics.js for deterministic movement.
-   * @param {string} id
-   * @param {Array} payload
+   * Processes vector input with boundary clamping and shared physics.
    */
   processInput(id, payload) {
     if (false === Array.isArray(payload)) return;
     if (4 !== payload.length) return;
 
     const [type, seq, vx, vy] = payload;
-    if (1 !== type) return; // Type 1 = Movement Input
+    if (1 !== type) return;
 
     const player = this.players.get(id);
     if (undefined === player) return;
-
-    // Authority: Reject stale or duplicate sequences
     if (seq <= player.lastInputSeq) return;
 
-    // Authority: Clamp vectors to prevent speed-hacking
     const vector = {
       x: Math.max(-1, Math.min(1, vx)),
       y: Math.max(-1, Math.min(1, vy)),
     };
 
-    const bounds = { width: this.config.width, height: this.config.height };
-
-    // Deterministic Physics Step
-    const nextPosition = applyInput(
+    const result = applyInput(
       { x: player.x, y: player.y },
       vector,
       this.config.playerSpeed,
       this.config.tickRate,
-      bounds
+      { width: this.config.width, height: this.config.height }
     );
 
-    player.x = nextPosition.x;
-    player.y = nextPosition.y;
+    player.x = result.x;
+    player.y = result.y;
     player.lastInputSeq = seq;
   }
 
   /**
-   * Resolves a list of collision pairs.
-   * Performs role swaps, teleports tagged players, and increments scores.
-   * Enforces the 2000ms grace period.
+   * Resolves collisions based on Hunter/Prey roles and temporal protections.
    *
-   * @param {Array<[string, string]>} pairs - Colliding entity ID pairs.
-   * @param {number} currentTime - Current server performance.now().
-   * @returns {Array} List of events generated [Type, Hunter_ID, Prey_ID, New_It_ID, Time].
+   * @param {Array<[string, string]>} pairs
+   * @param {number} currentTime
    */
   resolveCollisions(pairs, currentTime) {
     const events = [];
@@ -140,7 +129,7 @@ export class StateManager {
 
       if (undefined === pA || undefined === pB) return;
 
-      // Identify roles (one MUST be hunter, one MUST be prey)
+      // Identity identification
       const hunterId = 1 === pA.role ? idA : 1 === pB.role ? idB : null;
       const preyId = 0 === pA.role ? idA : 0 === pB.role ? idB : null;
 
@@ -149,21 +138,32 @@ export class StateManager {
       const hunter = this.players.get(hunterId);
       const prey = this.players.get(preyId);
 
-      // Authority: Check grace period (Only if they were recently tagged)
-      const hasRecentTag = 0 < hunter.lastTaggedTime;
-      const isWithinCooldown =
-        currentTime - hunter.lastTaggedTime < this.config.tagGracePeriod;
+      // 1. Rule: New Hunters have 50ms "Spawn Protection" (cannot tag others)
+      if (
+        0 < hunter.spawnTime &&
+        currentTime - hunter.spawnTime < this.config.spawnProtection
+      ) {
+        return;
+      }
 
-      if (hasRecentTag && isWithinCooldown) return;
+      // 2. Rule: New Prey have 2000ms "Grace Period" (cannot be tagged by the new hunter)
+      if (
+        0 < prey.lastCaughtTime &&
+        currentTime - prey.lastCaughtTime < this.config.tagGracePeriod
+      ) {
+        return;
+      }
 
-      // TAG EVENT
+      // --- VALID TAG EVENT ---
+
+      // Update Hunter (who caught someone)
       hunter.role = 0;
       hunter.score += 15;
+      hunter.lastCaughtTime = currentTime; // Now they are prey
 
+      // Update Prey (who was caught)
       prey.role = 1;
-      prey.lastTaggedTime = currentTime;
-
-      // Teleport prey (new hunter) to center
+      prey.spawnTime = currentTime; // Now they are the hunter at spawn
       prey.x = this.config.width / 2;
       prey.y = this.config.height / 2;
 
@@ -174,9 +174,7 @@ export class StateManager {
   }
 
   /**
-   * Returns an expanded snapshot.
-   * Format: [[ID, X, Y, Last_Input_Seq, Role, Score], ...]
-   * @returns {Array<Array>}
+   * Snapshot includes roles and scores.
    */
   getSnapshot() {
     const snapshot = [];
