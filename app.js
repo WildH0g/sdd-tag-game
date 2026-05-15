@@ -6,12 +6,17 @@ import { GameLoop } from './src/server/engine/GameLoop.js';
 import { CollisionEngine } from './src/server/engine/CollisionEngine.js';
 import pino from 'pino';
 
-const logger = pino({
-  transport: {
-    target: 'pino-pretty',
-  },
-  level: 'debug',
-});
+const isProduction = 'production' === process.env.NODE_ENV;
+const logger = pino(
+  isProduction
+    ? {}
+    : {
+        transport: {
+          target: 'pino-pretty',
+        },
+        level: 'debug',
+      }
+);
 
 const app = express();
 const server = createServer(app);
