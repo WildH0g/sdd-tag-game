@@ -37,7 +37,7 @@
   - **Agent Verification**: `npx vitest run` with fake timers to verify 20Hz polling frequency and payload formatting.
   - **User verification**: Observe network tab in browser to see outgoing 20Hz vector payloads when keys are pressed.
 
-- [ ] **2.2 Implement InterpolationBuffer**
+- [x] **2.2 Implement InterpolationBuffer**
   - Create buffer to store incoming server snapshots.
   - Implement pruning for snapshots older than 200ms.
   - Implement `getInterpolatedState(renderTime)` using Lerp between the two bounding snapshots.
@@ -68,3 +68,4 @@
 | 2026-05-14 | 1.1  | ✅ Complete | Implemented pure `src/shared/physics.js` for deterministic movement and clamping. Verified via unit tests. Critical foundation for reconciliation.                                                      |
 | 2026-05-14 | 1.2  | ✅ Complete | Refactored StateManager to process vector-based inputs and track sequence IDs. Integrated shared physics engine. Hardened against vector spoofing (speed hacks). Verified via manual console injection. |
 | 2026-05-14 | 2.1  | ✅ Complete | Implemented Client InputManager with 20Hz polling and keyboard sampling. Refactored for DI to support unit testing. Exposed src folders via app.js. Verified via manual browser interaction.            |
+| 2026-05-14 | 2.2  | ✅ Complete | Implemented InterpolationBuffer with chronological snapshot sorting, automated pruning, and precise Lerp factor calculation. Verified via unit tests for exact midpoint matching.                       |
