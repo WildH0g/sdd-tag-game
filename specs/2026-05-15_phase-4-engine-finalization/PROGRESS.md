@@ -9,8 +9,9 @@
 ### Phase 1: Advanced Physics (Engine)
 
 - [x] **1.1 Implement Swept AABB in CollisionEngine**
-  - Refactor `CollisionEngine.js` to support trajectory-based collision detection.
-  - Calculate intersections between movement segments and hitboxes to prevent high-speed tunneling.
+  - Create `src/server/engine/CollisionEngine.js`.
+  - Implement O(N²) AABB check with 2px negative padding.
+  - Return a list of verified collision pairs.
   - **Agent Tools**: `replace`, `run_shell_command`
   - **Agent Skills:** `js-tdd`, `game-physics`
   - **Agent Verification**: `npx vitest run` with precise coordinates simulating tunneling.
@@ -24,9 +25,9 @@
   - **Agent Tools**: `replace`, `run_shell_command`
   - **Agent Skills:** `js-tdd`, `code-clean`
   - **Agent Verification**: `npx vitest run` with fake timers to verify 50ms immunity.
-  - **User verification**: Observe 50ms immunity window immediately after being teleported to center.
+  - **User verification**: Observe "flicker" or semi-transparency when teleported to spawn (after Phase 4 UI).
 
-- [ ] **2.2 Optimize State Buffer (Zero GC Snapshotting)**
+- [x] **2.2 Optimize State Buffer (Zero GC Snapshotting)**
   - Implement a reusable state buffer in `StateManager.js` to avoid O(N) array allocation during broadcasts.
   - Minimize garbage collection pressure for the 20Hz heartbeat.
   - **Agent Tools**: `replace`, `run_shell_command`
@@ -59,3 +60,4 @@
 | 2026-05-15 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 4 SPEC.md.                                                                                                                                                    |
 | 2026-05-15 | 1.1  | ✅ Complete | Implemented Swept AABB collision detection in `CollisionEngine.js` using Liang-Barsky line clipping. Solved high-speed tunneling with temporal path validation (1e-6 epsilon).                       |
 | 2026-05-15 | 2.1  | ✅ Complete | Implemented 50ms Spawn Invulnerability in `StateManager.js`. Decoupled spawn safety from tag grace period using separate timestamps. Refactored resolveCollisions for correct role/score assignment. |
+| 2026-05-15 | 2.2  | ✅ Complete | Implemented zero-GC snapshot buffering in `StateManager.js` using a pre-allocated array pool to reduce heap pressure. Verified data integrity via Vitest suites.                                     |
