@@ -1,69 +1,96 @@
+import { applyInput } from '../../shared/physics.js';
+
 /**
  * Authoritative Single Source of Truth (SSOT) for the game state.
- * Enforces strict spatial boundaries and manages entity lifecycles.
+ * Refactored for Phase 2 to support Vector-based movement and Sequence tracking.
  */
 export class StateManager {
   /**
    * @param {Object} config
-   * @param {number} config.width - Arena width boundary.
-   * @param {number} config.height - Arena height boundary.
+   * @param {number} config.width - Arena width.
+   * @param {number} config.height - Arena height.
+   * @param {number} [config.playerSpeed=200] - Movement speed in px/s.
    */
   constructor(config) {
-    this.config = config;
+    this.config = {
+      width: config.width,
+      height: config.height,
+      playerSpeed: config.playerSpeed || 200,
+      tickRate: 0.05, // Fixed 50ms tick
+    };
     this.players = new Map();
   }
 
   /**
-   * Adds a new player to the state with default coordinates (center of arena).
-   * @param {string} id - The unique UUID from NetworkManager.
+   * Adds a new player with zeroed sequence tracking.
+   * @param {string} id
    */
   addPlayer(id) {
     this.players.set(id, {
       x: this.config.width / 2,
       y: this.config.height / 2,
+      lastInputSeq: 0,
     });
   }
 
   /**
    * Removes a player from the state.
-   * @param {string} id - The unique UUID.
+   * @param {string} id
    */
   removePlayer(id) {
     this.players.delete(id);
   }
 
   /**
-   * Processes a movement delta from a client.
-   * Enforces strict boundary clamping immediately.
-   * @param {string} id - The unique UUID.
-   * @param {Array} payload - The flat payload [Message_Type, X, Y].
+   * Processes a Vector input [Type, Input_Seq, Vec_X, Vec_Y].
+   * Integrates shared/physics.js for deterministic movement.
+   * @param {string} id
+   * @param {Array} payload
    */
-  updatePlayerPosition(id, payload) {
+  processInput(id, payload) {
     if (false === Array.isArray(payload)) return;
-    if (3 !== payload.length) return;
+    if (4 !== payload.length) return;
+
+    const [type, seq, vx, vy] = payload;
+    if (1 !== type) return; // Type 1 = Movement Input
 
     const player = this.players.get(id);
     if (undefined === player) return;
 
-    const [type, rawX, rawY] = payload;
-    if (1 !== type) return; // Type 1 = Position Update
-    if (false === Number.isFinite(rawX) || false === Number.isFinite(rawY))
-      return;
+    // Authority: Reject stale or duplicate sequences
+    if (seq <= player.lastInputSeq) return;
 
-    // Authority: Clamp to arena boundaries
-    player.x = Math.max(0, Math.min(this.config.width, rawX));
-    player.y = Math.max(0, Math.min(this.config.height, rawY));
+    // Authority: Clamp vectors to prevent speed-hacking
+    const vector = {
+      x: Math.max(-1, Math.min(1, vx)),
+      y: Math.max(-1, Math.min(1, vy)),
+    };
+
+    const bounds = { width: this.config.width, height: this.config.height };
+
+    // Deterministic Physics Step
+    const nextPosition = applyInput(
+      { x: player.x, y: player.y },
+      vector,
+      this.config.playerSpeed,
+      this.config.tickRate,
+      bounds
+    );
+
+    player.x = nextPosition.x;
+    player.y = nextPosition.y;
+    player.lastInputSeq = seq;
   }
 
   /**
-   * Returns a flat array of all player records for the 20Hz broadcast.
-   * Format: [[Client_ID, X, Y], ...]
+   * Returns a snapshot inclusive of last processed sequence.
+   * Format: [[ID, X, Y, Last_Input_Seq], ...]
    * @returns {Array<Array>}
    */
   getSnapshot() {
     const snapshot = [];
     this.players.forEach((data, id) => {
-      snapshot.push([id, data.x, data.y]);
+      snapshot.push([id, data.x, data.y, data.lastInputSeq]);
     });
     return snapshot;
   }
