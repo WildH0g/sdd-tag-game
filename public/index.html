@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOM-Arena | Phase 2 Diagnostic</title>
+    <title>DOM-Arena | Phase 2 Movement</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-slate-950 text-slate-200 font-sans min-h-screen flex flex-col items-center justify-center">
@@ -15,112 +15,109 @@
             <div><span class="text-slate-500">SERVER_TICK:</span> <span id="metric-tick" class="text-emerald-400">0</span></div>
             <div><span class="text-slate-500">LATENCY:</span> <span id="metric-latency" class="text-yellow-400">0ms</span></div>
             <div><span class="text-slate-500">ENTITIES:</span> <span id="metric-entities" class="text-purple-400">0</span></div>
+            <hr class="border-slate-800 my-1">
+            <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Phase 2 Metrics</div>
+            <div><span class="text-slate-500">MODE:</span> <span class="text-blue-400">PREDICTION + LERP</span></div>
+            <div><span class="text-slate-500">BUF_DEPTH:</span> <span id="metric-buffer" class="text-cyan-400">0</span></div>
         </div>
     </div>
 
-    <h1 class="mb-6 text-2xl font-bold tracking-tight text-slate-400 uppercase">Phase 2: Input Sampling</h1>
+    <h1 class="mb-6 text-2xl font-bold tracking-tight text-slate-400 uppercase">Phase 2: Fluid Movement</h1>
 
     <!-- Game Arena (800x600) -->
     <div id="arena" class="relative w-[800px] h-[600px] bg-slate-900 border-4 border-slate-800 rounded-lg shadow-2xl overflow-hidden cursor-crosshair">
-        <!-- Players will be injected here -->
+        <!-- Players injected by ClientEngine -->
     </div>
 
     <p class="mt-6 text-slate-500 text-sm max-w-lg text-center leading-relaxed">
-        InputManager is active. Movement vectors are polled at 20Hz.<br>
-        <span class="text-emerald-400 font-bold">Use Arrow Keys to move.</span>
+        Movement is now decoupled from network rate.<br>
+        <span class="text-blue-400 font-bold">Local Prediction</span> provides instant response.<br>
+        <span class="text-slate-400 font-bold">Snapshot Interpolation</span> smooths remote players.
     </p>
 
     <script type="module">
         import { InputManager } from './src/client/InputManager.js';
+        import { InterpolationBuffer } from './src/client/InterpolationBuffer.js';
+        import { ClientEngine } from './src/client/ClientEngine.js';
+        import { applyInput } from './src/shared/physics.js';
 
         const arena = document.getElementById('arena');
         const metricId = document.getElementById('metric-id');
         const metricTick = document.getElementById('metric-tick');
         const metricLatency = document.getElementById('metric-latency');
         const metricEntities = document.getElementById('metric-entities');
-
-        const playerElements = new Map();
-        let myClientId = null;
+        const metricBuffer = document.getElementById('metric-buffer');
 
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
-        // Instantiate InputManager
+        // 1. Initialize Components
         const inputManager = new InputManager({
-            onInputPolled: (inputRecord) => {
-                // Only send and log if there is an active connection
-                if (ws.readyState === WebSocket.OPEN) {
-                    ws.send(JSON.stringify(inputRecord));
-
-                    // Diagnostic: Log outgoing movement vectors
-                    const [type, seq, vx, vy] = inputRecord;
-                    if (vx !== 0 || vy !== 0) {
-                        console.log('%cMovement Sent:', 'color: #3b82f6; font-weight: bold;', inputRecord);
-                    }
-                }
+            onInputPolled: (input) => {
+                if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(input));
             }
         });
 
+        const interpolationBuffer = new InterpolationBuffer({
+            maxBufferSize: 100,
+            pruneThresholdMs: 500
+        });
+
+        const engine = new ClientEngine({
+            arenaElement: arena,
+            inputManager,
+            interpolationBuffer,
+            sharedPhysics: { applyInput },
+            renderDelayMs: 100, // 2-tick buffer
+            snapThreshold: 50
+        });
+
+        // 2. Wire WebSocket events
         ws.onopen = () => {
             console.log('%cConnected to DOM-Arena Authority', 'color: #10b981; font-weight: bold;');
             inputManager.start();
+            engine.start();
         };
 
         ws.onmessage = (e) => {
             const data = JSON.parse(e.data);
             
+            // Handshake
             if (data[0] === 0) {
-                myClientId = data[1];
-                metricId.innerText = myClientId.split('-')[0] + '...';
+                const myId = data[1];
+                const serverTime = data[2];
+                engine.setMyClientId(myId);
+                engine.syncClock(serverTime);
+                metricId.innerText = myId.split('-')[0] + '...';
                 return;
             }
 
+            // Heartbeat
             const [seq, serverTime, players] = data;
             
             metricTick.innerText = seq;
             metricEntities.innerText = players.length;
+            metricBuffer.innerText = interpolationBuffer.buffer.length;
+
             const latency = Math.floor(performance.now() - (window.lastTickTime || performance.now()));
             metricLatency.innerText = `${latency}ms`;
             window.lastTickTime = performance.now();
 
-            reconcilePlayers(players);
+            interpolationBuffer.push(data);
+            interpolationBuffer.prune(serverTime);
+            engine.onSnapshotReceived(data);
         };
-
-        function reconcilePlayers(snapshot) {
-            const currentIds = new Set(snapshot.map(p => p[0]));
-
-            for (const [id, el] of playerElements.entries()) {
-                if (!currentIds.has(id)) {
-                    el.remove();
-                    playerElements.delete(id);
-                }
-            }
-
-            for (const [id, x, y, lastSeq] of snapshot) {
-                let el = playerElements.get(id);
-
-                if (!el) {
-                    el = document.createElement('div');
-                    el.className = 'absolute w-6 h-6 rounded shadow-lg transition-colors duration-200';
-                    el.style.backgroundColor = id === myClientId ? '#3b82f6' : '#94a3b8';
-                    el.innerHTML = `<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-slate-500 whitespace-nowrap">${id.split('-')[0]}</div>`;
-                    arena.appendChild(el);
-                    playerElements.set(id, el);
-                }
-
-                // Still using snapping for now (Phase 3 will add Lerp)
-                el.style.transform = `translate(${x - 12}px, ${y - 12}px)`;
-            }
-        }
 
         ws.onclose = () => {
             console.warn('Disconnected from Server');
             inputManager.stop();
+            engine.stop();
             document.body.classList.add('grayscale', 'opacity-50');
         };
 
+        // Exposed for manual testing
         window.ws = ws;
-        window.inputManager = inputManager;
+        window.engine = engine;
     </script>
 </body>
 </html>
