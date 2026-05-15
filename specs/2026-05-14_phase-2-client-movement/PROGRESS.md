@@ -16,7 +16,7 @@
   - **Agent Verification**: `npx vitest run` to verify deterministic position calculation and boundary clamping.
   - **User verification**: None (Internal logic).
 
-- [ ] **1.2 Update Server StateManager for Vectors & Sequences**
+- [x] **1.2 Update Server StateManager for Vectors & Sequences**
   - Refactor `updatePlayerPosition` to accept vector payloads `[1, Input_Seq, Vector_X, Vector_Y]`.
   - Utilize `shared/physics.js` instead of direct assignment.
   - Track `lastProcessedInputSeq` per player.
@@ -62,7 +62,8 @@
 
 ## 📝 Change Log
 
-| Date       | Step | Status      | Notes                                                                                                                                              |
-| :--------- | :--- | :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-05-14 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 2 SPEC.md.                                                                                                  |
-| 2026-05-14 | 1.1  | ✅ Complete | Implemented pure `src/shared/physics.js` for deterministic movement and clamping. Verified via unit tests. Critical foundation for reconciliation. |
+| Date       | Step | Status      | Notes                                                                                                                                                                                                   |
+| :--------- | :--- | :---------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 2026-05-14 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 2 SPEC.md.                                                                                                                                                       |
+| 2026-05-14 | 1.1  | ✅ Complete | Implemented pure `src/shared/physics.js` for deterministic movement and clamping. Verified via unit tests. Critical foundation for reconciliation.                                                      |
+| 2026-05-14 | 1.2  | ✅ Complete | Refactored StateManager to process vector-based inputs and track sequence IDs. Integrated shared physics engine. Hardened against vector spoofing (speed hacks). Verified via manual console injection. |
