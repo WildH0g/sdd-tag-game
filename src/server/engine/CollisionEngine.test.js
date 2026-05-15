@@ -8,6 +8,30 @@ describe('CollisionEngine (1.1)', () => {
     engine = new CollisionEngine({ padding: 2 });
   });
 
+  it('should detect high-speed tunneling collisions (Swept AABB)', () => {
+    // Hunter stationary at 300, 300
+    // Visual size 24, padding 2 -> Hitbox 20x20 (290-310)
+    const entities = [
+      { id: 'hunter', x: 300, y: 300, size: 24 },
+      { id: 'prey', x: 325, y: 300, prevX: 275, prevY: 300, size: 24 },
+    ];
+
+    const pairs = engine.evaluate(entities);
+    expect(pairs.length).toBe(1);
+    expect(pairs[0]).toEqual(['hunter', 'prey']);
+  });
+
+  it('should NOT detect collision for high-speed near misses', () => {
+    // Prey passes Hunter vertically at X=270, not entering the [290-310] X-range
+    const entities = [
+      { id: 'hunter', x: 300, y: 300, size: 24 },
+      { id: 'prey', x: 270, y: 325, prevX: 270, prevY: 275, size: 24 },
+    ];
+
+    const pairs = engine.evaluate(entities);
+    expect(pairs.length).toBe(0);
+  });
+
   it('should detect collision for direct overlap', () => {
     const entities = [
       { id: '1', x: 100, y: 100, size: 24 },
