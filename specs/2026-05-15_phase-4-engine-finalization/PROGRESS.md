@@ -18,13 +18,13 @@
 
 ### Phase 2: State Integrity & Performance (State)
 
-- [ ] **2.1 Implement Spawn Invulnerability**
+- [x] **2.1 Implement Spawn Invulnerability**
   - Update `StateManager.js` to grant a 50ms (1 tick) immunity window post-teleport.
   - Prevent immediate "Double Tag" chain reactions at the spawn point.
   - **Agent Tools**: `replace`, `run_shell_command`
   - **Agent Skills:** `js-tdd`, `code-clean`
   - **Agent Verification**: `npx vitest run` with fake timers to verify 50ms immunity.
-  - **User verification**: Observe "flicker" or semi-transparency when teleported to spawn (after Phase 4 UI).
+  - **User verification**: Observe 50ms immunity window immediately after being teleported to center.
 
 - [ ] **2.2 Optimize State Buffer (Zero GC Snapshotting)**
   - Implement a reusable state buffer in `StateManager.js` to avoid O(N) array allocation during broadcasts.
@@ -54,7 +54,8 @@
 
 ## 📝 Change Log
 
-| Date       | Step | Status      | Notes                                                                                                                                                                          |
-| :--------- | :--- | :---------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 2026-05-15 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 4 SPEC.md.                                                                                                                              |
-| 2026-05-15 | 1.1  | ✅ Complete | Implemented Swept AABB collision detection in `CollisionEngine.js` using Liang-Barsky line clipping. Solved high-speed tunneling with temporal path validation (1e-6 epsilon). |
+| Date       | Step | Status      | Notes                                                                                                                                                                                                |
+| :--------- | :--- | :---------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-05-15 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 4 SPEC.md.                                                                                                                                                    |
+| 2026-05-15 | 1.1  | ✅ Complete | Implemented Swept AABB collision detection in `CollisionEngine.js` using Liang-Barsky line clipping. Solved high-speed tunneling with temporal path validation (1e-6 epsilon).                       |
+| 2026-05-15 | 2.1  | ✅ Complete | Implemented 50ms Spawn Invulnerability in `StateManager.js`. Decoupled spawn safety from tag grace period using separate timestamps. Refactored resolveCollisions for correct role/score assignment. |
