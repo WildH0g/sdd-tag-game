@@ -9,12 +9,17 @@
 <body class="bg-slate-950 text-slate-200 font-sans min-h-screen flex flex-col items-center justify-center">
 
     <!-- Diagnostic HUD -->
-    <div id="hud" class="fixed top-4 left-4 bg-slate-900/80 border border-slate-700 p-4 rounded-md font-mono text-xs shadow-xl backdrop-blur-sm z-50">
+    <div id="hud" class="fixed top-4 left-4 w-48 bg-slate-900/80 border border-slate-700 p-4 rounded-md font-mono text-xs shadow-xl backdrop-blur-sm z-50">
         <div class="flex flex-col gap-1">
             <div><span class="text-slate-500">CLIENT_ID:</span> <span id="metric-id" class="text-blue-400">---</span></div>
             <div><span class="text-slate-500">SERVER_TICK:</span> <span id="metric-tick" class="text-emerald-400">0</span></div>
             <div><span class="text-slate-500">LATENCY:</span> <span id="metric-latency" class="text-yellow-400">0ms</span></div>
             <div><span class="text-slate-500">ENTITIES:</span> <span id="metric-entities" class="text-purple-400">0</span></div>
+            <hr class="border-slate-800 my-1">
+            <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Scoreboard</div>
+            <div id="scoreboard" class="flex flex-col gap-1 max-h-32 overflow-y-auto pr-2 mb-2">
+                <!-- Scores injected here -->
+            </div>
             <hr class="border-slate-800 my-1">
             <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">Phase 2 Metrics</div>
             <div><span class="text-slate-500">MODE:</span> <span class="text-blue-400">PREDICTION + LERP</span></div>
@@ -106,7 +111,40 @@
             interpolationBuffer.push(data);
             interpolationBuffer.prune(serverTime);
             engine.onSnapshotReceived(data);
+            reconcileRoles(players);
         };
+
+        /**
+         * Authoritative role-based rendering reconciliation.
+         */
+        function reconcileRoles(snapshot) {
+            const myClientId = engine.myClientId;
+            const scoreboard = document.getElementById('scoreboard');
+            
+            // Sort players by score for the HUD list
+            const sortedPlayers = [...snapshot].sort((a, b) => b[5] - a[5]);
+            scoreboard.innerHTML = sortedPlayers.map(p => {
+                const isMe = p[0] === myClientId;
+                const id = p[0].split('-')[0];
+                const score = p[5];
+                return `<div class="flex justify-between w-full gap-2 ${isMe ? 'text-blue-400 font-bold' : 'text-slate-400'}">
+                    <span class="inline-block truncate w-24">${id}</span>&nbsp;
+                    <span class="font-mono shrink-0">${score}</span>
+                </div>`;
+            }).join('');
+
+            for (const [id, x, y, lastSeq, role, score] of snapshot) {
+                const el = engine.playerElements.get(id);
+                if (!el) continue;
+
+                const isHunter = 1 === role;
+                const baseColor = isHunter ? '#ef4444' : (id === myClientId ? '#3b82f6' : '#94a3b8');
+                
+                el.style.backgroundColor = baseColor;
+                el.style.boxShadow = isHunter ? '0 0 15px rgba(239, 68, 68, 0.5)' : 'none';
+                el.innerHTML = `<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono text-slate-500 whitespace-nowrap">${id.split('-')[0]} [${score}]</div>`;
+            }
+        }
 
         ws.onclose = () => {
             console.warn('Disconnected from Server');
