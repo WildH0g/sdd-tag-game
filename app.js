@@ -44,8 +44,7 @@ const networkManager = new NetworkManager({
     logger.info({ clientId: id }, 'Client disconnected');
   },
   onClientMessage: (id, payload) => {
-    logger.debug({ clientId: id, payload }, 'Message received');
-    stateManager.updatePlayerPosition(id, payload);
+    stateManager.processInput(id, payload);
   },
 });
 
