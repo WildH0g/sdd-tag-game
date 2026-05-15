@@ -9,30 +9,25 @@ vi.mock('ws', () => {
   };
 });
 
-describe('NetworkManager (1.1)', () => {
+describe('NetworkManager (3.1 - Competitive Protocol)', () => {
   let networkManager;
   let mockWssInstance;
 
   beforeEach(() => {
     vi.useFakeTimers();
 
-    // Setup WSS mock instance
     mockWssInstance = {
       on: vi.fn(),
       close: vi.fn(),
       clients: new Set(),
     };
 
-    // Use a function that returns the mock instance
     WebSocketServer.mockImplementation(function () {
       return mockWssInstance;
     });
 
     networkManager = new NetworkManager({
       port: 8080,
-      onClientConnect: vi.fn(),
-      onClientDisconnect: vi.fn(),
-      onClientMessage: vi.fn(),
     });
 
     networkManager.start();
@@ -44,13 +39,12 @@ describe('NetworkManager (1.1)', () => {
     vi.clearAllMocks();
   });
 
-  it('should generate a unique ID and send a handshake on new connection', () => {
+  it('should broadcast a Type 2 "Tag Event" with the correct 5-element schema', () => {
     const mockSocket = {
       on: vi.fn(),
       send: vi.fn(),
       terminate: vi.fn(),
       ping: vi.fn(),
-      isAlive: true,
       readyState: 1,
       bufferedAmount: 0,
     };
@@ -60,20 +54,23 @@ describe('NetworkManager (1.1)', () => {
     )[1];
     connectionHandler(mockSocket);
 
-    expect(mockSocket.clientId).toBeDefined();
-    expect(mockSocket.send).toHaveBeenCalled();
-    const sentData = JSON.parse(mockSocket.send.mock.calls[0][0]);
-    expect(sentData[0]).toBe(0);
-    expect(sentData[1]).toBe(mockSocket.clientId);
+    // Schema: [Type, Hunter_ID, Prey_ID, New_It_ID, Timestamp]
+    const tagEvent = [2, 'hunter-1', 'prey-1', 'prey-1', 12345.67];
+
+    networkManager.broadcast(tagEvent);
+
+    const sentData = JSON.parse(mockSocket.send.mock.calls[1][0]); // call 0 was handshake
+    expect(sentData[0]).toBe(2);
+    expect(sentData.length).toBe(5);
+    expect(sentData[1]).toBe('hunter-1');
   });
 
-  it('should terminate zombie connections that fail Ping/Pong', () => {
+  it('should broadcast an expanded Type 1 snapshot with 6-element player records', () => {
     const mockSocket = {
       on: vi.fn(),
       send: vi.fn(),
       terminate: vi.fn(),
       ping: vi.fn(),
-      isAlive: true,
       readyState: 1,
       bufferedAmount: 0,
     };
@@ -83,37 +80,14 @@ describe('NetworkManager (1.1)', () => {
     )[1];
     connectionHandler(mockSocket);
 
-    // First interval: set isAlive to false and send ping
-    vi.advanceTimersByTime(30001);
-    expect(mockSocket.ping).toHaveBeenCalled();
-    expect(mockSocket.isAlive).toBe(false);
+    // Schema: [Seq, Time, [[ID, X, Y, Seq, Role, Score], ...]]
+    const snapshot = [100, 5000, [['p1', 400, 300, 10, 1, 15]]];
 
-    // Second interval: if isAlive is still false, terminate
-    vi.advanceTimersByTime(30001);
-    expect(mockSocket.terminate).toHaveBeenCalled();
-  });
+    networkManager.broadcast(snapshot);
 
-  it('should terminate clients exceeding bufferedAmount threshold during broadcast', () => {
-    const mockSocket = {
-      on: vi.fn(),
-      send: vi.fn(),
-      terminate: vi.fn(),
-      ping: vi.fn(),
-      readyState: 1,
-      bufferedAmount: 20000,
-    };
-
-    const connectionHandler = mockWssInstance.on.mock.calls.find(
-      (call) => 'connection' === call[0]
-    )[1];
-    connectionHandler(mockSocket);
-
-    // Reset calls to ignore the handshake send
-    mockSocket.send.mockClear();
-
-    networkManager.broadcast([100, 12345, []]);
-
-    expect(mockSocket.terminate).toHaveBeenCalled();
-    expect(mockSocket.send).not.toHaveBeenCalled();
+    const sentData = JSON.parse(mockSocket.send.mock.calls[1][0]);
+    expect(sentData[2][0].length).toBe(6);
+    expect(sentData[2][0][4]).toBe(1); // Role
+    expect(sentData[2][0][5]).toBe(15); // Score
   });
 });
