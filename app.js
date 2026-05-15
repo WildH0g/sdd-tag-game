@@ -3,6 +3,7 @@ import { createServer } from 'node:http';
 import { NetworkManager } from './src/server/network/NetworkManager.js';
 import { StateManager } from './src/server/state/StateManager.js';
 import { GameLoop } from './src/server/engine/GameLoop.js';
+import { CollisionEngine } from './src/server/engine/CollisionEngine.js';
 import pino from 'pino';
 
 const logger = pino({
@@ -36,6 +37,7 @@ const stateManager = new StateManager({
   width: ARENA_WIDTH,
   height: ARENA_HEIGHT,
 });
+const collisionEngine = new CollisionEngine({ padding: 2 });
 
 const networkManager = new NetworkManager({
   port: PORT,
@@ -58,15 +60,33 @@ const gameLoop = new GameLoop({
   tickRate: 50, // 20Hz
 });
 
-// Throttle heartbeat logging to once per 100 ticks (5 seconds)
-let tickCount = 0;
+// Competitive Loop Override
 const originalTick = gameLoop._tick.bind(gameLoop);
 gameLoop._tick = () => {
-  tickCount++;
-  if (100 <= tickCount) {
-    logger.debug('Heartbeat: 100 ticks processed');
-    tickCount = 0;
-  }
+  const serverTime = performance.now();
+
+  // 1. Evaluate Physics
+  const entities = Array.from(stateManager.players.entries()).map(
+    ([id, p]) => ({
+      id,
+      x: p.x,
+      y: p.y,
+      size: 24,
+    })
+  );
+
+  const pairs = collisionEngine.evaluate(entities);
+
+  // 2. Resolve Competitive State
+  const tagEvents = stateManager.resolveCollisions(pairs, serverTime);
+
+  // 3. Broadcast Events (Phase 3.1)
+  tagEvents.forEach((event) => {
+    logger.info({ event }, 'Tag Event Triggered');
+    networkManager.broadcast(event);
+  });
+
+  // 4. Standard Tick (Snapshot)
   originalTick();
 };
 
