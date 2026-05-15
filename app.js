@@ -22,6 +22,10 @@ const ARENA_HEIGHT = 600;
 
 // Static file serving for Phase 4
 app.use(express.static('public'));
+// Expose client logic modules
+app.use('/src/client', express.static('src/client'));
+// Expose shared modules
+app.use('/src/shared', express.static('src/shared'));
 
 // Health check for Cloud Run
 app.get('/health', (req, res) => {
