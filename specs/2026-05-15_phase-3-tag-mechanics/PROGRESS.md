@@ -31,13 +31,13 @@
 
 ### Phase 3: Network (Event Protocol & Expanded Broadcast)
 
-- [ ] **3.1 Update NetworkManager & Protocol for Tag Events**
+- [x] **3.1 Update NetworkManager & Protocol for Tag Events**
   - Expand 20Hz broadcast payload to include `role` and `score`.
   - Implement Type 2 "Tag Event" broadcast logic.
   - **Agent Tools**: `replace`, `write_file`, `run_shell_command`
   - **Agent Skills:** `websocket-protocol`, `js-tdd`, `code-patterns`
   - **Agent Verification**: `npx vitest run` to verify expanded payload schemas and event triggering.
-  - **User verification**: Observe network tab for Type 2 packets when players collide.
+  - **User verification**: Observe console for red `[TAG EVENT]` logs when players collide.
 
 ### Phase 4: UI (Competitive Visuals & HUD)
 
@@ -57,3 +57,4 @@
 | 2026-05-15 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 3 SPEC.md.                                                                                                                                                                                 |
 | 2026-05-15 | 1.1  | ✅ Complete | Implemented pure `CollisionEngine` with authoritative AABB logic and 2px negative padding ("Forgiving Collision"). Verified via precision unit tests. O(N²) implementation.                                                       |
 | 2026-05-15 | 2.1  | ✅ Complete | Expanded StateManager with Roles, Scores (+15 per tag), and 2000ms grace period. Wired CollisionEngine into authoritative heartbeat loop in app.js. Verified visual tagging and score updates via diagnostic HUD scoreboard list. |
+| 2026-05-15 | 3.1  | ✅ Complete | Formalized Type 2 "Tag Event" network protocol. Expanded 20Hz heartbeat to include Roles and Scores. Verified discrete event broadcasting via browser console diagnostic script.                                                  |
