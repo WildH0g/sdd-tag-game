@@ -28,7 +28,7 @@
 
 ### Phase 2: Client Networking & State
 
-- [ ] **2.1 Implement Client InputManager**
+- [x] **2.1 Implement Client InputManager**
   - Create `InputManager` to track keyboard state (arrows).
   - Implement 20Hz polling loop to push vectors to `PendingQueue` and send via WebSocket.
   - Tag payloads with incrementing `Input_Seq`.
@@ -67,3 +67,4 @@
 | 2026-05-14 | Init | 🟢 Started  | Initialized PROGRESS.md based on Phase 2 SPEC.md.                                                                                                                                                       |
 | 2026-05-14 | 1.1  | ✅ Complete | Implemented pure `src/shared/physics.js` for deterministic movement and clamping. Verified via unit tests. Critical foundation for reconciliation.                                                      |
 | 2026-05-14 | 1.2  | ✅ Complete | Refactored StateManager to process vector-based inputs and track sequence IDs. Integrated shared physics engine. Hardened against vector spoofing (speed hacks). Verified via manual console injection. |
+| 2026-05-14 | 2.1  | ✅ Complete | Implemented Client InputManager with 20Hz polling and keyboard sampling. Refactored for DI to support unit testing. Exposed src folders via app.js. Verified via manual browser interaction.            |
